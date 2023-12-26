@@ -1,0 +1,39 @@
+on:
+  workflow_dispatch:
+    inputs:
+      stake:
+        description: 'stake.lido.fi'
+        required: true
+        type: boolean
+      trp:
+        description: 'trp.lido.fi'
+        required: true
+        type: boolean
+      solana:
+        description: 'solana.lido.fi'
+        type: boolean
+        required: true
+      polygon:
+        description: 'polygon.lido.fi'
+        type: boolean
+        required: true
+      operators:
+        description: 'operators.lido.fi'
+        type: boolean
+        required: true
+      easytrack:
+        description: 'easytrack.lido.fi'
+        type: boolean
+        required: true
+      vote:
+        description: 'vote.lido.fi'
+        type: boolean
+        required: true
+          
+jobs:
+  print-tag:
+    runs-on: ubuntu-latest
+    if:  ${{ inputs.print_tags }} 
+    steps:
+      - name: Print the input tag to STDOUT
+        run: echo  The tags are ${{ inputs.tags }} 
