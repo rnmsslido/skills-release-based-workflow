@@ -36,7 +36,10 @@ jobs:
     steps:
       - name: Generate domain list
         env:
-          INPUTS: ${{ toJson(github.event.inputs) }}
+          INPUTS: ${{ toJson(github.event.inputs) }}          
+          INPUTS1: ${{ toJson(github.event.inputs) }}
+          INPUTS2: ${{ toJson(inputs) }}
+          INPUTS3: ${{ toJSON(inputs) }}
         run: |
           domains=$(echo $INPUTS | jq -r 'to_entries | map(select(.value == "true") | .key + ".lido.fi") | join(",")')
           if [ -z "$domains" ]; then
