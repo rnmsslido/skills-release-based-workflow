@@ -1,0 +1,59 @@
+on:
+  workflow_dispatch:
+    inputs:
+      stake:
+        description: 'stake.lido.fi'
+        required: true
+        type: boolean
+      trp:
+        description: 'trp.lido.fi'
+        required: true
+        type: boolean
+      solana:
+        description: 'solana.lido.fi'
+        type: boolean
+        required: true
+      polygon:
+        description: 'polygon.lido.fi'
+        type: boolean
+        required: true
+      operators:
+        description: 'operators.lido.fi'
+        type: boolean
+        required: true
+      easytrack:
+        description: 'easytrack.lido.fi'
+        type: boolean
+        required: true
+      vote:
+        description: 'vote.lido.fi'
+        type: boolean
+        required: true
+          
+jobs:
+  print-tag:
+    runs-on: ubuntu-latest
+    if:  ${{ inputs.print_tags }} 
+    steps:
+      - name: Print the input tag to STDOUT
+        run: echo  The tags are ${{ inputs.tags }} 
+
+  generate-domain-list-static:
+    runs-on: ubuntu-latest
+    outputs:
+      domain_list: ${{ steps.set-domain-list.outputs.domain_list }}
+    steps:
+      - name: Set domain list
+        id: set-domain-list
+        run: |
+          domain_list=""
+          [[ ${{ inputs.stake }} == true ]] && domain_list+="stake.lido.fi,"
+          [[ ${{ inputs.trp }} == true ]] && domain_list+="trp.lido.fi,"
+          [[ ${{ inputs.solana }} == true ]] && domain_list+="solana.lido.fi,"
+          [[ ${{ inputs.polygon }} == true ]] && domain_list+="polygon.lido.fi,"
+          [[ ${{ inputs.operators }} == true ]] && domain_list+="operators.lido.fi,"
+          [[ ${{ inputs.easytrack }} == true ]] && domain_list+="easytrack.lido.fi,"
+          [[ ${{ inputs.vote }} == true ]] && domain_list+="vote.lido.fi,"
+          # Remove trailing comma
+          domain_list=${domain_list%,}
+          echo "Static Domain List: $domain_list"
