@@ -41,7 +41,7 @@ jobs:
           INPUTS2: ${{ toJson(inputs) }}
           INPUTS3: ${{ toJSON(inputs) }}
         run: |
-          domains=$(echo $INPUTS | jq -r 'to_entries | map(select(.value == "true") | .key + ".lido.fi") | join(",")')
+          domains=$(echo $INPUTS3 | jq -r 'to_entries | map(select(.value == true) | .key + ".lido.fi") | join(",")')
           if [ -z "$domains" ]; then
             echo "No domains are set to true. Failing the job."
             exit 1
