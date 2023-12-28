@@ -65,6 +65,7 @@ jobs:
         env:
           INPUTS: ${{ toJson(github.event.inputs) }}
         run: |
+          echo "$INPUTS"
           domain_list=""
           for input in $(echo $INPUTS | jq -r 'to_entries|map(select(.value == "true"))|.[]| .key'); do
             domain_desc=$(echo $INPUTS | jq -r --arg input_name "$input" '.[$description]')
