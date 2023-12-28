@@ -65,6 +65,7 @@ jobs:
         env:
           INPUTS: ${{ toJson(github.event.inputs) }}
         run: |
+          echo "${{ github.event.inputs }}"
           domain_list=$(echo $INPUTS | jq -r 'to_entries | map(select(.value == "true") | .key + ".lido.fi") | join(",")')
           if [ -z "$domain_list" ]; then
             echo "No domains are set to true. Failing the job."
