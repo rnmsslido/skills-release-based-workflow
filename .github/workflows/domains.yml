@@ -67,7 +67,7 @@ jobs:
         run: |
           domain_list=""
           for input in $(echo $INPUTS | jq -r 'to_entries|map(select(.value == "true"))|.[]| .key'); do
-            domain_desc=$(echo $INPUTS | jq -r --arg input_name "$input" '.[$input_name]')
+            domain_desc=$(echo $INPUTS | jq -r --arg input_name "$input" '.[description]')
             domain_list+="${domain_desc},"
           done
           # Remove trailing comma
