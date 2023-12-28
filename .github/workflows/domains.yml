@@ -37,3 +37,27 @@ jobs:
     steps:
       - name: Print the input tag to STDOUT
         run: echo  The tags are ${{ inputs.tags }} 
+
+  generate-domain-list:
+    runs-on: ubuntu-latest
+    outputs:
+      domain_list: ${{ steps.set-domain-list.outputs.domain_list }}
+    steps:
+      - name: Set domain list
+        id: set-domain-list
+        run: |
+          domain_list=""
+          [[ ${{ inputs.stake }} == true ]] && domain_list+="stake.lido.fi,"
+          [[ ${{ inputs.trp }} == true ]] && domain_list+="trp.lido.fi,"
+          [[ ${{ inputs.solana }} == true ]] && domain_list+="solana.lido.fi,"
+          [[ ${{ inputs.polygon }} == true ]] && domain_list+="polygon.lido.fi,"
+          [[ ${{ inputs.operators }} == true ]] && domain_list+="operators.lido.fi,"
+          [[ ${{ inputs.easytrack }} == true ]] && domain_list+="easytrack.lido.fi,"
+          [[ ${{ inputs.vote }} == true ]] && domain_list+="vote.lido.fi,"
+          # Remove trailing comma
+          domain_list=${domain_list%,}
+          echo "domain_list=$domain_list" >> $GITHUB_ENV
+          echo "::set-output name=domain_list::$domain_list"
+
+      - name: Print Domain List
+        run: echo "Domain List: ${{ steps.set-domain-list.outputs.domain_list }}"
