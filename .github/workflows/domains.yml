@@ -56,8 +56,4 @@ jobs:
           [[ ${{ inputs.vote }} == true ]] && domain_list+="vote.lido.fi,"
           # Remove trailing comma
           domain_list=${domain_list%,}
-          echo "domain_list=$domain_list" >> $GITHUB_ENV
-          echo "::set-output name=domain_list::$domain_list"
-
-      # - name: Print Domain List
-      #   run: echo "Domain List: ${{ steps.set-domain-list.outputs.domain_list }}"
+          echo "domain_list=$domain_list"
