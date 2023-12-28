@@ -38,7 +38,7 @@ jobs:
       - name: Print the input tag to STDOUT
         run: echo  The tags are ${{ inputs.tags }} 
 
-  generate-domain-list:
+  generate-domain-list-static:
     runs-on: ubuntu-latest
     outputs:
       domain_list: ${{ steps.set-domain-list.outputs.domain_list }}
@@ -56,4 +56,20 @@ jobs:
           [[ ${{ inputs.vote }} == true ]] && domain_list+="vote.lido.fi,"
           # Remove trailing comma
           domain_list=${domain_list%,}
-          echo "domain_list=$domain_list"
+          echo "Static Domain List: $domain_list"
+
+  generate-domain-list-dynamic:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate Domain List
+        env:
+          INPUTS: ${{ toJson(github.event.inputs) }}
+        run: |
+          domain_list=""
+          for input in $(echo $INPUTS | jq -r 'to_entries|map(select(.value == "true"))|.[]| .key'); do
+            domain_desc=$(echo $INPUTS | jq -r --arg input_name "$input" '.[$input_name]')
+            domain_list+="${domain_desc},"
+          done
+          # Remove trailing comma
+          domain_list=${domain_list%,}
+          echo "Dynamic Domain List: $domain_list"
