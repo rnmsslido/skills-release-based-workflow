@@ -34,13 +34,20 @@ jobs:
   generate-domain-list-dynamic:
     runs-on: ubuntu-latest
     steps:
-      - name: Generate Domain List
+      - name: Generate domain list
         env:
-          INPUTS: ${{ toJson(github.event.inputs) }}
+          INPUTS: ${{ toJSON(inputs) }}
         run: |
-          domain_list=$(echo $INPUTS | jq -r 'to_entries | map(select(.value == "true") | .key + ".lido.fi") | join(",")')
-          if [ -z "$domain_list" ]; then
+          domains=$(echo $INPUTS | jq -r 'to_entries | map(select(.value == "true") | .key + ".lido.fi") | join(",")')
+          if [ -z "$domains" ]; then
             echo "No domains are set to true. Failing the job."
             exit 1
           fi
-          echo "Dynamic Domain List: $domain_list"
+          echo "domain_list=$domains" >> $GITHUB_ENV
+
+      - name: Lockdown
+        run: echo ansible-playbook
+          playbooks/lockdown_dummy.yaml
+          -e lockdown_domain_list=${{ env.domain_list }}
+          # -e lockdown_state=${{ github.event.inputs.state }}
+        # working-directory: ansible
