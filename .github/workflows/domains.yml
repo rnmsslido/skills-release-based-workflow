@@ -65,17 +65,9 @@ jobs:
         env:
           INPUTS: ${{ toJson(github.event.inputs) }}
         run: |
-          domain_list=""
-          for input in $(echo $INPUTS | jq -r 'to_entries | map(select(.value == "true")) | .[] | .key'); do
-            domain_list+="${input}.lido.fi,"
-          done
-          # Remove trailing comma
-          domain_list=${domain_list%,}
-
-          # Check if domain list is empty and fail the job if it is
+          domain_list=$(echo $INPUTS | jq -r 'to_entries | map(select(.value == "true") | .key + ".lido.fi") | join(",")')
           if [ -z "$domain_list" ]; then
             echo "No domains are set to true. Failing the job."
             exit 1
           fi
-
           echo "Dynamic Domain List: $domain_list"
