@@ -49,7 +49,7 @@ jobs:
           echo "domain_list=$domains" >> $GITHUB_ENV
 
       - name: Lockdown
-        run: echo ansible-playbook
+        run: echo $INPUTS3 ansible-playbook
           playbooks/lockdown_dummy.yaml
           -e lockdown_domain_list=${{ env.domain_list }}
           # -e lockdown_state=${{ github.event.inputs.state }}
