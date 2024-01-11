@@ -55,8 +55,7 @@ env:
 
 jobs:
   lockdown:
-    runs-on: ubuntu-20.04
-
+    runs-on: ubuntu-latest
     steps:
 
       - name: Generate domain list
@@ -85,4 +84,3 @@ jobs:
           playbooks/lockdown.yaml
           -e lockdown_domain_list=${{ env.domain_list }}
           -e lockdown_state=${{ github.event.inputs.state }}
-        working-directory: ansible
