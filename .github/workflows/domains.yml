@@ -1,56 +1,88 @@
-on:
+---
+name: Emergency lockdown for testnet
+
+
+"on":
   workflow_dispatch:
     inputs:
-      stake:
-        description: 'stake.lido.fi'
-        required: true
-        type: boolean
-      trp:
-        description: 'trp.lido.fi'
-        required: true
-        type: boolean
-      solana:
-        description: 'solana.lido.fi'
-        type: boolean
-        required: true
-      polygon:
-        description: 'polygon.lido.fi'
+      # do not remove domains from 'description', they are used for tests
+      easytrack:
+        description: 'easytrack.testnet.fi'
         type: boolean
         required: true
       operators:
-        description: 'operators.lido.fi'
+        description: 'operators.testnet.fi'
         type: boolean
         required: true
-      easytrack:
-        description: 'easytrack.lido.fi'
+      polygon:
+        description: 'polygon.testnet.fi'
         type: boolean
         required: true
+      solana:
+        description: 'solana.testnet.fi'
+        type: boolean
+        required: true
+      stake:
+        description: 'stake.testnet.fi'
+        required: true
+        type: boolean
+      trp:
+        description: 'trp.testnet.fi'
+        required: true
+        type: boolean
       vote:
-        description: 'vote.lido.fi'
+        description: 'vote.testnet.fi'
         type: boolean
         required: true
-          
+      state:
+        description: "State of lock: present/absent"
+        type: choice
+        required: true
+        options:
+          - present
+          - absent
+        default: 'present'
+
+permissions:
+  contents: read
+  packages: read
+
+env:
+  ANSIBLE_FORCE_COLOR: "True"
+  ANSIBLE_LOG_FOLDER: logs
+  ANSIBLE_INVENTORY: "inventories/testnet/,secret_inventories/testnet/,inventories/ci_user.yml"
+  encrypted_ci_env: ""
+
 jobs:
-  generate-domain-list-dynamic:
-    runs-on: ubuntu-latest
+  lockdown:
+    runs-on: ubuntu-20.04
+
     steps:
+
       - name: Generate domain list
-        env:
-          INPUTS: ${{ toJson(github.event.inputs) }}          
-          INPUTS1: ${{ toJson(github.event.inputs) }}
-          INPUTS2: ${{ toJson(inputs) }}
-          INPUTS3: ${{ toJSON(inputs) }}
         run: |
-          domains=$(echo $INPUTS3 | jq -r 'to_entries | map(select(.value == true) | .key + ".lido.fi") | join(",")')
+          domains=$(echo $INPUTS | jq -r 'to_entries | map(select(.value == true) | .key + ".testnet.fi") | join(",")')
           if [ -z "$domains" ]; then
             echo "No domains are set to true. Failing the job."
             exit 1
           fi
           echo "domain_list=$domains" >> $GITHUB_ENV
+        env:
+          INPUTS: ${{ toJSON(inputs) }}
+
+      - name: Show the action to be executed
+        run: |
+          echo "State: ${{ github.event.inputs.state }}"
+          if [ "${{ github.event.inputs.state }}" == "present" ]; then
+            action="Enabling"
+          else
+            action="Disabling"
+          fi
+          echo "$action lockdown page on these domains: ${{ env.domain_list }}"
 
       - name: Lockdown
-        run: echo $INPUTS3 ansible-playbook
-          playbooks/lockdown_dummy.yaml
+        run: echo ansible-playbook
+          playbooks/lockdown.yaml
           -e lockdown_domain_list=${{ env.domain_list }}
-          # -e lockdown_state=${{ github.event.inputs.state }}
-        # working-directory: ansible
+          -e lockdown_state=${{ github.event.inputs.state }}
+        working-directory: ansible
