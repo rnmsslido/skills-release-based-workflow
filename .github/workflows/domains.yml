@@ -71,13 +71,12 @@ jobs:
 
       - name: Show the action to be executed
         run: |
-          echo "State: ${{ github.event.inputs.state }}"
           if [ "${{ github.event.inputs.state }}" == "present" ]; then
             action="Enabling"
           else
             action="Disabling"
           fi
-          echo "$action lockdown page on these domains: ${{ env.domain_list }}"
+          echo "$action lockdown page for the following domains: ${{ env.domain_list }}"
 
       - name: Lockdown
         run: echo ansible-playbook
