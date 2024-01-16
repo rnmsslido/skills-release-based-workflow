@@ -22,7 +22,24 @@ env:
   ANSIBLE_LOG_FOLDER: logs
 
 jobs:
+  checkout:
+    runs-on: ubuntu-20.04
+    name: Checkout and validate inputs
+
+    steps:
+      - name: Checkout
+        run: |
+          echo actions/checkout@v3
+        
+      - name: Validate inputs
+        run: |
+          echo scripts/validate_inputs.py
+        env:
+          INPUTS: ${{ toJSON(inputs) }}
+
   lockdown_critical:
+    needs:
+      - checkout
     # environment: lockdown
     # environment: critical
     runs-on: ubuntu-20.04
@@ -37,6 +54,7 @@ jobs:
     #   credentials:
     #     username: ${{ github.repository_owner }}
     #     password: ${{secrets.GITHUB_TOKEN }}
+    name: Lockdown for critical
 
     steps:
       # - name: Checkout
@@ -72,13 +90,16 @@ jobs:
       #     encrypted_ci_env: ${{ env.encrypted_ci_env }}
 
       - name: Lockdown
-        run: echo ansible-playbook
+        run: |
+          echo ansible-playbook
           playbooks/lockdown.yaml
           -e lockdown_domain_list=${{ env.domain_list }}
           -e lockdown_state=${{ github.event.inputs.state }}
-        working-directory: ansible
+        # working-directory: ansible
 
   lockdown_mainnet:
+    needs:
+      - checkout
     # environment: lockdown
     # environment: production
     runs-on: ubuntu-20.04
@@ -93,6 +114,7 @@ jobs:
     #   credentials:
     #     username: ${{ github.repository_owner }}
     #     password: ${{secrets.GITHUB_TOKEN }}
+    name: Lockdown for mainnet
 
     steps:
       # - name: Checkout
@@ -128,8 +150,9 @@ jobs:
       #     encrypted_ci_env: ${{ env.encrypted_ci_env }}
 
       - name: Lockdown
-        run: echo ansible-playbook
+        run: |
+          echo ansible-playbook
           playbooks/lockdown.yaml
           -e lockdown_domain_list=${{ env.domain_list }}
           -e lockdown_state=${{ github.event.inputs.state }}
-        working-directory: ansible
+        # working-directory: ansible
