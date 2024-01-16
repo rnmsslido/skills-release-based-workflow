@@ -1,39 +1,9 @@
 ---
-name: Emergency lockdown for testnet
-
+name: Emergency lockdown for all environments
 
 "on":
   workflow_dispatch:
     inputs:
-      # do not remove domains from 'description', they are used for tests
-      easytrack:
-        description: 'easytrack.testnet.fi'
-        type: boolean
-        required: true
-      operators:
-        description: 'operators.testnet.fi'
-        type: boolean
-        required: true
-      polygon:
-        description: 'polygon.testnet.fi'
-        type: boolean
-        required: true
-      solana:
-        description: 'solana.testnet.fi'
-        type: boolean
-        required: true
-      stake:
-        description: 'stake.testnet.fi'
-        required: true
-        type: boolean
-      trp:
-        description: 'trp.testnet.fi'
-        required: true
-        type: boolean
-      vote:
-        description: 'vote.testnet.fi'
-        type: boolean
-        required: true
       state:
         description: "State of lock: present/absent"
         type: choice
@@ -41,7 +11,7 @@ name: Emergency lockdown for testnet
         options:
           - present
           - absent
-        default: 'present'
+        default: "present"
 
 permissions:
   contents: read
@@ -50,21 +20,38 @@ permissions:
 env:
   ANSIBLE_FORCE_COLOR: "True"
   ANSIBLE_LOG_FOLDER: logs
-  ANSIBLE_INVENTORY: "inventories/testnet/,secret_inventories/testnet/,inventories/ci_user.yml"
-  encrypted_ci_env: ""
 
 jobs:
-  lockdown:
-    runs-on: ubuntu-latest
-    steps:
+  lockdown_critical:
+    # environment: lockdown
+    # environment: critical
+    runs-on: ubuntu-20.04
+    # env:
+    #   ANSIBLE_INVENTORY: "inventories/critical/,secret_inventories/critical/,inventories/ci_user.yml"
+    #   matrix_host_inventory: "inventories/critical/"
+    #   # sops_key: secret must be used directly in environment-restricted jobs
+    #   encrypted_ssh_key: .github/secrets/critical/ssh_private_key.sops
+    #   encrypted_ci_env: ""
+    # container:
+    #   image: ghcr.io/lidofinance/ci:stable
+    #   credentials:
+    #     username: ${{ github.repository_owner }}
+    #     password: ${{secrets.GITHUB_TOKEN }}
 
-      - name: Generate domain list
+    steps:
+      # - name: Checkout
+      #   uses: actions/checkout@v3
+      #   with:
+      #     persist-credentials: false
+
+      # - name: Validate inputs
+      #   run: scripts/validate_inputs.py
+      #   env:
+      #     INPUTS: ${{ toJSON(inputs) }}
+
+      - name: Record domain list
         run: |
-          domains=$(echo $INPUTS | jq -r 'to_entries | map(select(.value == true) | .key + ".testnet.fi") | join(",")')
-          if [ -z "$domains" ]; then
-            echo "No domains are set to true. Failing the job."
-            exit 1
-          fi
+          domains="easytrack.lido.fi,polygon.lido.fi,solana.lido.fi,stake.lido.fi,trp.lido.fi,vote.lido.fi"
           echo "domain_list=$domains" >> $GITHUB_ENV
         env:
           INPUTS: ${{ toJSON(inputs) }}
@@ -77,8 +64,72 @@ jobs:
             echo "Disabling lockdown page for the following domains: ${{ env.domain_list }}"
           fi
 
+      # - name: Open sops secrets
+      #   uses: ./.github/actions/import_sops_secrets
+      #   with:
+      #     sops_key: "${{ secrets.SOPS_CRITICAL }}"
+      #     encrypted_ssh_key: ${{ env.encrypted_ssh_key }}
+      #     encrypted_ci_env: ${{ env.encrypted_ci_env }}
+
       - name: Lockdown
         run: echo ansible-playbook
           playbooks/lockdown.yaml
           -e lockdown_domain_list=${{ env.domain_list }}
           -e lockdown_state=${{ github.event.inputs.state }}
+        working-directory: ansible
+
+  lockdown_mainnet:
+    # environment: lockdown
+    # environment: production
+    runs-on: ubuntu-20.04
+    # env:
+    #   ANSIBLE_INVENTORY: "inventories/mainnet/,secret_inventories/mainnet/,inventories/ci_user.yml"
+    #   matrix_host_inventory: "inventories/mainnet/"
+    #   # sops_key: secret must be used directly in environment-restricted jobs
+    #   encrypted_ssh_key: .github/secrets/mainnet/ssh_private_key.sops
+    #   encrypted_ci_env: ""
+    # container:
+    #   image: ghcr.io/lidofinance/ci:stable
+    #   credentials:
+    #     username: ${{ github.repository_owner }}
+    #     password: ${{secrets.GITHUB_TOKEN }}
+
+    steps:
+      # - name: Checkout
+      #   uses: actions/checkout@v3
+      #   with:
+      #     persist-credentials: false
+
+      # - name: Validate inputs
+      #   run: scripts/validate_inputs.py
+      #   env:
+      #     INPUTS: ${{ toJSON(inputs) }}
+
+      - name: Record domain list
+        run: |
+          domains="operators.lido.fi,yiasucosme.lido.fi"
+          echo "domain_list=$domains" >> $GITHUB_ENV
+        env:
+          INPUTS: ${{ toJSON(inputs) }}
+
+      - name: Show the action to be executed
+        run: |
+          if [ "${{ github.event.inputs.state }}" == "present" ]; then
+            echo "Enabling lockdown page for the following domains: ${{ env.domain_list }}"
+          else
+            echo "Disabling lockdown page for the following domains: ${{ env.domain_list }}"
+          fi
+
+      # - name: Open sops secrets
+      #   uses: ./.github/actions/import_sops_secrets
+      #   with:
+      #     sops_key: "${{ secrets.SOPS_MAINNET }}"
+      #     encrypted_ssh_key: ${{ env.encrypted_ssh_key }}
+      #     encrypted_ci_env: ${{ env.encrypted_ci_env }}
+
+      - name: Lockdown
+        run: echo ansible-playbook
+          playbooks/lockdown.yaml
+          -e lockdown_domain_list=${{ env.domain_list }}
+          -e lockdown_state=${{ github.event.inputs.state }}
+        working-directory: ansible
