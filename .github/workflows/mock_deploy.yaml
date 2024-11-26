@@ -1,4 +1,4 @@
- name: Env Deploy
+name: Env Deploy
 
 on:
   push:
