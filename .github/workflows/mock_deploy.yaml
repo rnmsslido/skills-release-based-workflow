@@ -1,0 +1,59 @@
+ name: Env Deploy
+
+on:
+  push:
+
+jobs:
+  generate-host-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.generate-matrix.outputs.matrix }}
+    steps:
+      - name: Generate host matrix
+        id: generate-matrix
+        run: |
+          set -euo pipefail
+          NUM_HOSTS=3
+          HOSTS=$(seq -f "host%g" 1 $NUM_HOSTS | jq -R . | jq -s .)
+          echo "matrix=${HOSTS}" >> $GITHUB_OUTPUTS
+
+  deploy:
+    needs: generate-host-matrix
+    strategy:
+      matrix:
+        host: ${{ fromJson(needs.generate-host-matrix.outputs.matrix) }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy
+        run: echo "Deploying on ${{ matrix.host }}"
+
+  selfsd:
+    needs: generate-host-matrix
+    runs-on: ubuntu-latest
+    steps:
+      - name: SelfSD Task
+        run: echo "Running selfsd task"
+
+  controller-tests:
+    needs: [deploy, selfsd]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run controller tests
+        run: echo "Running controller tests"
+
+  logs:
+    needs: [deploy, selfsd]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Collect logs
+        run: echo "Collecting logs"
+
+  self-tests:
+    needs: [deploy, selfsd]
+    strategy:
+      matrix:
+        host: ${{ fromJson(needs.generate-host-matrix.outputs.matrix) }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run self tests
+        run: echo "Running tests on ${{ matrix.host }}"
