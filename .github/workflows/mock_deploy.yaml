@@ -15,7 +15,6 @@ jobs:
           set -euo pipefail
           NUM_HOSTS=3
           HOSTS=$(seq -f "host%g" 1 $NUM_HOSTS | jq -R . | jq -s . | jq -c)
-          # host_matrix=${HOSTS}
           echo $HOSTS
           echo "host_matrix=${HOSTS}" >> "$GITHUB_OUTPUT"
 
@@ -54,7 +53,7 @@ jobs:
     needs: [deploy, selfsd]
     strategy:
       matrix:
-        host: ${{ fromJson(needs.generate-host-matrix.outputs.matrix) }}
+        host: ${{ fromJSON(needs.generate-host-matrix.outputs.host_matrix) }}
     runs-on: ubuntu-latest
     steps:
       - name: Run self tests
