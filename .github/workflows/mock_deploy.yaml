@@ -15,7 +15,9 @@ jobs:
           set -euo pipefail
           NUM_HOSTS=3
           HOSTS=$(seq -f "host%g" 1 $NUM_HOSTS | jq -R . | jq -s .)
-          echo "host_matrix=${HOSTS}" >> "$GITHUB_OUTPUT"
+          host_matrix=${HOSTS}
+          echo $HOSTS
+          # echo "host_matrix=${HOSTS}" >> "$GITHUB_OUTPUT"
 
   deploy:
     needs: generate-host-matrix
